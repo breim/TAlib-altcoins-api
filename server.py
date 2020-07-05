@@ -36,4 +36,5 @@ def indicators():
     )
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    print("Example: http://localhost:5000?symbol=BTCUSDT&interval=5m")
+    app.run(host='0.0.0.0', debug=True)
