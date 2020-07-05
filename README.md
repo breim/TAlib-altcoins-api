@@ -10,6 +10,7 @@ Binance API indicators (ADX, RSI, MINUS_DI and PLUS_DI)
 ``sudo docker build --no-cache . -t indicators``
 
 **Run container**
+
 ``sudo docker run -it --rm -p 5000:5000 indicators``
 
 **Get indicators**
