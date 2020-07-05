@@ -7,7 +7,6 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-# http://localhost:5000?symbol=BTCUSDT&interval=5m
 @app.route("/")
 def indicators():
     symbol = request.args.get('symbol')
