@@ -23,13 +23,19 @@ http://localhost:5000/?symbol=BTCUSDT&interval=5m
 
 *interval*: Binance have the following time frames or intervals: ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M'].
 
+*limit*: Limit binance api return default is 100
+
 **Example response**
 
 ```json
   {
-    "adx": 14.625980895238811,
-    "minus_di": 20.056506186367354,
-    "plus_di": 20.41933578565063,
-    "rsi": 47.763117632729035
+    "adx": 52.90973494613487,
+    "ma_100": 11700,
+    "ma_50": 11700,
+    "macd": -30.9,
+    "minus_di": 39.19350254139547,
+    "plus_di": 4.528784884053814,
+    "rsi": 33.51984340870133,
+    "sma": 11607.09
   }
 ```
