@@ -1,5 +1,4 @@
-# Indicators API
-Binance API indicators (ADX, RSI, MINUS_DI and PLUS_DI)
+# Exchanges API with ta-lib indicators
 
 **List containers:**
 
@@ -15,11 +14,13 @@ Binance API indicators (ADX, RSI, MINUS_DI and PLUS_DI)
 
 **Get indicators**
 
-http://localhost:5000/?symbol=BTCUSDT&interval=5m
+http://localhost:5000/indicators?exchange=binance&symbol=BTC/USDT&interval=1h
 
 **Suported params**
 
-*symbol*: ‘BTCUSDT’ Bitcoin to Tether, or LTCBTC Litecoin to Bitcoin.
+*exchange*: [supported list](https://github.com/ccxt/ccxt#supported-cryptocurrency-exchange-markets)
+
+*symbol*: ‘BTC/USDT’ Bitcoin to Tether, or LTCBTC Litecoin to Bitcoin.
 
 *interval*: Binance have the following time frames or intervals: ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M'].
 
