@@ -3,3 +3,4 @@ numpy
 pandas
 ccxt
 flask
+python-dotenv
