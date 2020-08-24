@@ -1,4 +1,4 @@
-# Exchanges API with ta-lib indicators
+# Indicators API with ta-lib
 
 **List containers:**
 
