@@ -2,5 +2,6 @@ requests
 numpy
 pandas
 ccxt
-flask
+fastapi
+uvicorn
 python-dotenv

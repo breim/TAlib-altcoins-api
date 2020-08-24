@@ -17,5 +17,5 @@ RUN pip install ta-lib
 ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
 EXPOSE 5000
 
-CMD [ "python", "./server.py" ]
+CMD [ "python", "./run.py" ]
 
