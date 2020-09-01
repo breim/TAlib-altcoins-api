@@ -25,22 +25,29 @@ async def indicators(exchange: str, symbol: str, interval: str = '30m', limit: i
     rsi = talib.RSI(cl.values, timeperiod=14)
     plus_di = talib.PLUS_DI(hi.values, lo.values, cl.values, timeperiod=14)
     minus_di = talib.MINUS_DI(hi.values, lo.values, cl.values, timeperiod=14)
-    sma = talib.SMA(cl.values, timeperiod=5)
+    sma = talib.SMA(cl.values, timeperiod=30)
+    sma_10 = talib.SMA(cl.values, timeperiod=10)
+    sma_dir = convert_number(round(sma[-1], 8) - round(sma_10[-1], 8))
     macd, macdsignal, macdhist = talib.MACD(cl.values, fastperiod=12, slowperiod=26, signalperiod=14)    
     macd = convert_number(macd[-1])
     ma_50 = convert_number(talib.MA(cl.values, timeperiod=50, matype=0)[-1])
     ma_100 = convert_number(talib.MA(cl.values, timeperiod=100, matype=0)[-1])
-    
+    linear_regression = talib.LINEARREG(cl.values, timeperiod=14)
+    linear_angle =  talib.LINEARREG_ANGLE(cl.values, timeperiod=14)
+
     return {
       "adx": adx[-1],
       "rsi": rsi[-1],
       "plus_di": plus_di[-1],
       "minus_di": minus_di[-1],
       "sma": round(sma[-1], 8),
+      "sma_dir": sma_dir,
       "macd": macd,
       "ma_50": ma_50,
-      "ma_100": ma_100
+      "ma_100": ma_100,
+      "linear_regression": linear_regression[-1],
+      "linear_angle": convert_number(linear_angle[-1])
     }
 
 def convert_number(value):
-    return (float(str(float(np.format_float_scientific(value, unique=False, precision=2))).split('e-')[0]))
+    return (float(str(float(np.format_float_scientific(value, unique=False, precision=8))).split('e-')[0]))
