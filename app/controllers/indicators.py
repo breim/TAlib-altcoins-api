@@ -32,9 +32,11 @@ async def indicators(exchange: str, symbol: str, interval: str = '30m', limit: i
     macd = convert_number(macd[-1])
     ma_50 = convert_number(talib.MA(cl.values, timeperiod=50, matype=0)[-1])
     ma_100 = convert_number(talib.MA(cl.values, timeperiod=100, matype=0)[-1])
-    linear_regression = talib.LINEARREG(cl.values, timeperiod=14)
-    linear_angle =  talib.LINEARREG_ANGLE(cl.values, timeperiod=14)
-
+    linear_regression = talib.LINEARREG(cl.values, timeperiod=14)[-1]
+    linear_angle =  convert_number(talib.LINEARREG_ANGLE(cl.values, timeperiod=14)[-1])
+    linear_intercept = convert_number(talib.LINEARREG_INTERCEPT(cl.values, timeperiod=14)[-1])
+    linear_slope = convert_number(talib.LINEARREG_SLOPE(cl.values, timeperiod=14)[-1])
+    
     return {
       "adx": adx[-1],
       "rsi": rsi[-1],
@@ -45,8 +47,10 @@ async def indicators(exchange: str, symbol: str, interval: str = '30m', limit: i
       "macd": macd,
       "ma_50": ma_50,
       "ma_100": ma_100,
-      "linear_regression": linear_regression[-1],
-      "linear_angle": convert_number(linear_angle[-1])
+      "linear_regression": linear_regression,
+      "linear_angle": linear_angle,
+      "linear_intercept": linear_intercept,
+      "linear_slope": linear_slope
     }
 
 def convert_number(value):
