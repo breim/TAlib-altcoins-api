@@ -26,10 +26,12 @@ async def indicators(exchange: str, symbol: str, interval: str = '30m', limit: i
     plus_di = talib.PLUS_DI(hi.values, lo.values, cl.values, timeperiod=14)
     minus_di = talib.MINUS_DI(hi.values, lo.values, cl.values, timeperiod=14)
     sma = talib.SMA(cl.values, timeperiod=30)
+    sma_5 = talib.SMA(cl.values, timeperiod=5)
     sma_10 = talib.SMA(cl.values, timeperiod=10)
     sma_dir = convert_number(round(sma[-1], 8) - round(sma_10[-1], 8))
     macd, macdsignal, macdhist = talib.MACD(cl.values, fastperiod=12, slowperiod=26, signalperiod=14)    
     macd = convert_number(macd[-1])
+    macdsignal = convert_number(macdsignal[-1])
     ma_50 = convert_number(talib.MA(cl.values, timeperiod=50, matype=0)[-1])
     ma_100 = convert_number(talib.MA(cl.values, timeperiod=100, matype=0)[-1])
     linear_regression = talib.LINEARREG(cl.values, timeperiod=14)[-1]
@@ -43,8 +45,11 @@ async def indicators(exchange: str, symbol: str, interval: str = '30m', limit: i
       "plus_di": plus_di[-1],
       "minus_di": minus_di[-1],
       "sma": round(sma[-1], 8),
+      "sma_10": round(sma_10[-1], 8),
+      "sma_5": round(sma_5[-1], 8),
       "sma_dir": sma_dir,
       "macd": macd,
+      "macdsignal": macdsignal,
       "ma_50": ma_50,
       "ma_100": ma_100,
       "linear_regression": linear_regression,
