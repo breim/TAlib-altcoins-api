@@ -20,6 +20,7 @@ async def indicators(exchange: str, symbol: str, interval: str = '30m', limit: i
     hi = df['high']
     lo = df['low']
     cl = df['close']
+    vl = df['volume']
 
     adx = talib.ADX(hi.values, lo.values, cl.values, timeperiod=14)
     rsi = talib.RSI(cl.values, timeperiod=14)
@@ -34,6 +35,8 @@ async def indicators(exchange: str, symbol: str, interval: str = '30m', limit: i
     macdsignal = convert_number(macdsignal[-1])
     ma_50 = convert_number(talib.MA(cl.values, timeperiod=50, matype=0)[-1])
     ma_100 = convert_number(talib.MA(cl.values, timeperiod=100, matype=0)[-1])
+    obv = talib.OBV(cl.values, vl.values)
+    rsi_obv = convert_number(talib.RSI(obv, timeperiod=14)[-1])
     linear_regression = talib.LINEARREG(cl.values, timeperiod=14)[-1]
     linear_angle =  convert_number(talib.LINEARREG_ANGLE(cl.values, timeperiod=14)[-1])
     linear_intercept = convert_number(talib.LINEARREG_INTERCEPT(cl.values, timeperiod=14)[-1])
@@ -52,6 +55,7 @@ async def indicators(exchange: str, symbol: str, interval: str = '30m', limit: i
       "macdsignal": macdsignal,
       "ma_50": ma_50,
       "ma_100": ma_100,
+      "rsi_obv": rsi_obv,
       "linear_regression": linear_regression,
       "linear_angle": linear_angle,
       "linear_intercept": linear_intercept,
