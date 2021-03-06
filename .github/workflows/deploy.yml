@@ -25,3 +25,4 @@ jobs:
 
     - name: Push
       run: docker push ghcr.io/${GITHUB_REPOSITORY}:${IMAGE_TAG}
+
