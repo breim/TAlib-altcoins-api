@@ -12,6 +12,10 @@
 
 ``sudo docker run -it --rm -p 5000:5000 indicators``
 
+or
+
+``sudo docker run -it --rm -p 5000:5000 ghcr.io/breim/TAlib-altcoins-api:X.X.X``
+
 **Get indicators**
 
 http://localhost:5000/indicators?exchange=binance&symbol=BTC/USDT&interval=1h

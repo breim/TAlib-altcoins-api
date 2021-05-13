@@ -1,0 +1,27 @@
+name: Test Build Container Image
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Get version
+      run: echo "IMAGE_TAG=${GITHUB_ACTOR}" >> $GITHUB_ENV
+
+    - name: Build Docker Image
+      run: docker build -t ghcr.io/${GITHUB_REPOSITORY}:${IMAGE_TAG} .
+
+    - name: Run Docker Image
+      run: docker run -it -d --rm -p 5000:5000 ghcr.io/${GITHUB_REPOSITORY}:${IMAGE_TAG}
+
+    - name: Test Docker Image
+      run: curl "http://localhost:5000/indicators?exchange=binance&symbol=BTC/USDT&interval=1h"
+
