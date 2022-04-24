@@ -18,7 +18,7 @@ or
 
 **Get indicators**
 
-http://localhost:5000/indicators?exchange=binance&symbol=BTC/USDT&interval=1h
+http://localhost:5001/indicators?exchange=binance&symbol=BTC/USDT&interval=1h
 
 **Suported params**
 
