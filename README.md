@@ -10,11 +10,11 @@
 
 **Run container**
 
-``sudo docker run -it --rm -p 5000:5000 indicators``
+``sudo docker run -it --rm -p 5001:5001 indicators``
 
 or
 
-``sudo docker run -it --rm -p 5000:5000 ghcr.io/breim/TAlib-altcoins-api:X.X.X``
+``sudo docker run -it --rm -p 5001:5001 ghcr.io/breim/TAlib-altcoins-api:X.X.X``
 
 **Get indicators**
 
