@@ -1,66 +1,57 @@
 import talib
 import ccxt
-import requests
 import numpy as np
 import pandas as pd
-from datetime import datetime
-from app import app
-from fastapi import Request
-  
+
+from fastapi import FastAPI, HTTPException
+
+app = FastAPI()
+
 @app.get('/indicators')
 async def indicators(exchange: str, symbol: str, interval: str = '30m', limit: int = 100):
-    exchange = getattr(ccxt, exchange)()
-    kline = exchange.fetch_ohlcv(symbol, interval, limit=int(limit))
+    try:
+        exchange_client = getattr(ccxt, exchange)()
+    except AttributeError:
+        raise HTTPException(status_code=404, detail=f"Exchange {exchange} not found.")
 
-    df = pd.DataFrame(np.array(kline),
-                       columns=['open_time', 'open', 'high', 'low', 'close', 'volume'],
-                       dtype='float64')
+    try:
+        kline = exchange_client.fetch_ohlcv(symbol, interval, limit=limit)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-    op = df['open']
-    hi = df['high']
-    lo = df['low']
-    cl = df['close']
-    vl = df['volume']
+    df = pd.DataFrame(kline, columns=['time', 'open', 'high', 'low', 'close', 'volume']).astype('float64')
 
-    adx = talib.ADX(hi.values, lo.values, cl.values, timeperiod=14)
-    rsi = talib.RSI(cl.values, timeperiod=14)
-    plus_di = talib.PLUS_DI(hi.values, lo.values, cl.values, timeperiod=14)
-    minus_di = talib.MINUS_DI(hi.values, lo.values, cl.values, timeperiod=14)
-    sma = talib.SMA(cl.values, timeperiod=30)
-    sma_5 = talib.SMA(cl.values, timeperiod=5)
-    sma_10 = talib.SMA(cl.values, timeperiod=10)
-    sma_dir = convert_number(round(sma[-1], 8) - round(sma_10[-1], 8))
-    macd, macdsignal, macdhist = talib.MACD(cl.values, fastperiod=12, slowperiod=26, signalperiod=14)    
-    macd = convert_number(macd[-1])
-    macdsignal = convert_number(macdsignal[-1])
-    ma_50 = convert_number(talib.MA(cl.values, timeperiod=50, matype=0)[-1])
-    ma_100 = convert_number(talib.MA(cl.values, timeperiod=100, matype=0)[-1])
-    obv = talib.OBV(cl.values, vl.values)
-    rsi_obv = convert_number(talib.RSI(obv, timeperiod=14)[-1])
-    linear_regression = talib.LINEARREG(cl.values, timeperiod=14)[-1]
-    linear_angle =  convert_number(talib.LINEARREG_ANGLE(cl.values, timeperiod=14)[-1])
-    linear_intercept = convert_number(talib.LINEARREG_INTERCEPT(cl.values, timeperiod=14)[-1])
-    linear_slope = convert_number(talib.LINEARREG_SLOPE(cl.values, timeperiod=14)[-1])
-    
+    indicators = calculate_indicators(df)
+    return indicators
+
+def calculate_indicators(df):
+    adx = talib.ADX(df['high'], df['low'], df['close'], timeperiod=14)[-1]
+    rsi = talib.RSI(df['close'], timeperiod=14)[-1]
+    plus_di = talib.PLUS_DI(df['high'], df['low'], df['close'], timeperiod=14)[-1]
+    minus_di = talib.MINUS_DI(df['high'], df['low'], df['close'], timeperiod=14)[-1]
+    sma = talib.SMA(df['close'], timeperiod=30)[-1]
+    sma_5 = talib.SMA(df['close'], timeperiod=5)[-1]
+    sma_10 = talib.SMA(df['close'], timeperiod=10)[-1]
+    sma_dir = round(sma - sma_10, 8)
+    macd, macdsignal, _ = talib.MACD(df['close'], fastperiod=12, slowperiod=26, signalperiod=9)
+    obv = talib.OBV(df['close'], df['volume'])
+
     return {
-      "adx": adx[-1],
-      "rsi": rsi[-1],
-      "plus_di": plus_di[-1],
-      "minus_di": minus_di[-1],
-      "sma": round(sma[-1], 8),
-      "sma_10": round(sma_10[-1], 8),
-      "sma_5": round(sma_5[-1], 8),
-      "sma_dir": sma_dir,
-      "macd": macd,
-      "macdsignal": macdsignal,
-      "ma_50": ma_50,
-      "ma_100": ma_100,
-      "rsi_obv": rsi_obv,
-      "linear_regression": linear_regression,
-      "linear_angle": linear_angle,
-      "linear_intercept": linear_intercept,
-      "linear_slope": linear_slope
+        "adx": adx,
+        "rsi": rsi,
+        "plus_di": plus_di,
+        "minus_di": minus_di,
+        "sma": round(sma, 8),
+        "sma_10": round(sma_10, 8),
+        "sma_5": round(sma_5, 8),
+        "sma_dir": sma_dir,
+        "macd": macd[-1],
+        "macdsignal": macdsignal[-1],
+        "ma_50": talib.MA(df['close'], timeperiod=50)[-1],
+        "ma_100": talib.MA(df['close'], timeperiod=100)[-1],
+        "rsi_obv": talib.RSI(obv, timeperiod=14)[-1],
+        "linear_regression": talib.LINEARREG(df['close'], timeperiod=14)[-1],
+        "linear_angle": talib.LINEARREG_ANGLE(df['close'], timeperiod=14)[-1],
+        "linear_intercept": talib.LINEARREG_INTERCEPT(df['close'], timeperiod=14)[-1],
+        "linear_slope": talib.LINEARREG_SLOPE(df['close'], timeperiod=14)[-1]
     }
-
-def convert_number(value):
-    return (float(str(float(np.format_float_scientific(value, unique=False, precision=8))).split('e-')[0]))
