@@ -1,8 +1,19 @@
-version: '3'
-
 services:
   web:
     build: .
+    image: talib-altcoins-api:local
     ports:
-      - 5001:5001
-    restart: always
+      - "5001:5001"
+    environment:
+      ENVIRONMENT: development
+      LOG_JSON: "false"
+      LOG_LEVEL: INFO
+      CORS_ALLOW_ORIGINS: ""
+      RATE_LIMIT: 60/minute
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1:5001/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
