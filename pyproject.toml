@@ -1,0 +1,110 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "talib-altcoins-api"
+version = "0.1.0"
+description = "FastAPI service exposing TA-Lib technical indicators over OHLCV data fetched via CCXT."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Henrique Breim", email = "henrique@breim.com.br" }]
+keywords = ["fastapi", "ta-lib", "ccxt", "technical-analysis", "crypto"]
+classifiers = [
+  "Framework :: FastAPI",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Office/Business :: Financial",
+]
+dependencies = [
+  "fastapi>=0.115,<1.0",
+  "uvicorn[standard]>=0.30,<1.0",
+  "pydantic>=2.5,<3.0",
+  "pydantic-settings>=2.2,<3.0",
+  "python-dotenv>=1.0,<2.0",
+  "ccxt>=4.4,<5.0",
+  "numpy>=1.26,<3.0",
+  "pandas>=2.2,<3.0",
+  "TA-Lib>=0.4.32,<1.0",
+  "structlog>=24.1,<26.0",
+  "asgi-correlation-id>=4.3,<5.0",
+  "cachetools>=5.3,<6.0",
+  "tenacity>=8.2,<10.0",
+  "slowapi>=0.1.9,<1.0",
+  "prometheus-fastapi-instrumentator>=7.0,<8.0",
+  "sentry-sdk[fastapi]>=2.0,<3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0,<9.0",
+  "pytest-asyncio>=0.23,<1.0",
+  "pytest-cov>=5.0,<7.0",
+  "httpx>=0.27,<1.0",
+  "ruff>=0.5,<1.0",
+  "mypy>=1.10,<2.0",
+  "pre-commit>=3.7,<5.0",
+  "pip-audit>=2.7,<3.0",
+  "types-cachetools>=5.3,<7.0",
+  "pandas-stubs>=2.2,<3.0",
+]
+
+[project.scripts]
+talib-altcoins-api = "talib_altcoins_api.__main__:main"
+
+[project.urls]
+Repository = "https://github.com/breim/TAlib-altcoins-api"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/talib_altcoins_api"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "S", "ASYNC", "C4", "PIE", "PT"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "ASYNC"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_configs = true
+warn_unreachable = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["talib", "ccxt", "slowapi", "slowapi.*", "prometheus_fastapi_instrumentator"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra --strict-markers --strict-config"
+filterwarnings = ["error", "ignore::DeprecationWarning"]
+
+[tool.coverage.run]
+branch = true
+source = ["talib_altcoins_api"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+]
+fail_under = 80
+show_missing = true
