@@ -1,27 +1,91 @@
-name: Test Build Container Image
+name: CI
 
 on:
+  push:
+    branches: [master]
   pull_request:
-    branches:
-      - master
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test
+  lint-and-test:
+    name: Lint, type-check, test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ta-lib system library
+        run: |
+          set -euo pipefail
+          tar -xzf ta-lib-0.4.0-src.tar.gz
+          cd ta-lib
+          ./configure --prefix=/usr
+          make -j"$(nproc)"
+          sudo make install
+          sudo ldconfig
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv sync --all-extras --python ${{ matrix.python-version }}
+
+      - name: Ruff lint
+        run: uv run --python ${{ matrix.python-version }} ruff check .
+
+      - name: Ruff format
+        run: uv run --python ${{ matrix.python-version }} ruff format --check .
+
+      - name: Mypy
+        run: uv run --python ${{ matrix.python-version }} mypy src
+
+      - name: Pytest
+        run: uv run --python ${{ matrix.python-version }} pytest --cov --cov-report=term --cov-report=xml
+
+      - name: Upload coverage
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+
+  security:
+    name: Dependency audit
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv python install 3.12
+      - run: uv tool install pip-audit
+      - run: uv tool run pip-audit --strict -r <(uv export --no-hashes --format requirements-txt)
+        shell: bash
 
-    - uses: actions/checkout@v2
-
-    - name: Get version
-      run: echo "IMAGE_TAG=${GITHUB_ACTOR}" >> $GITHUB_ENV
-
-    - name: Build Docker Image
-      run: docker build -t ghcr.io/${GITHUB_REPOSITORY}:${IMAGE_TAG} .
-
-    - name: Run Docker Image
-      run: docker run -it -d --rm -p 5000:5000 ghcr.io/${GITHUB_REPOSITORY}:${IMAGE_TAG}
-
-    - name: Test Docker Image
-      run: curl "http://localhost:5000/indicators?exchange=binance&symbol=BTC/USDT&interval=1h"
-
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: talib-altcoins-api:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
