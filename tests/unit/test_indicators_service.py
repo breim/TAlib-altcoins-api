@@ -6,26 +6,30 @@ import pytest
 
 from talib_altcoins_api.schemas.indicators import IndicatorParams
 from talib_altcoins_api.services.indicators import (
+    IndicatorUnstableError,
     InsufficientDataError,
+    _required_rows,
     calculate_indicators,
     ohlcv_to_dataframe,
 )
 
 
-def _default_params() -> IndicatorParams:
-    return IndicatorParams(
-        adx_period=14,
-        rsi_period=14,
-        sma_short_period=5,
-        sma_mid_period=10,
-        sma_long_period=30,
-        ma_50_period=50,
-        ma_100_period=100,
-        macd_fast=12,
-        macd_slow=26,
-        macd_signal=9,
-        linear_reg_period=14,
-    )
+def _default_params(**overrides: int) -> IndicatorParams:
+    values = {
+        "adx_period": 14,
+        "rsi_period": 14,
+        "sma_short_period": 5,
+        "sma_mid_period": 10,
+        "sma_long_period": 30,
+        "ma_50_period": 50,
+        "ma_100_period": 100,
+        "macd_fast": 12,
+        "macd_slow": 26,
+        "macd_signal": 9,
+        "linear_reg_period": 14,
+    }
+    values.update(overrides)
+    return IndicatorParams(**values)
 
 
 def test_calculate_returns_finite_values(ohlcv: list[list[float]]) -> None:
@@ -54,3 +58,40 @@ def test_sma_dir_is_long_minus_mid(ohlcv: list[list[float]]) -> None:
     df = ohlcv_to_dataframe(ohlcv)
     response = calculate_indicators(df, _default_params())
     assert response.sma_dir == pytest.approx(response.sma - response.sma_10, rel=1e-9)
+
+
+@pytest.mark.parametrize(
+    ("overrides", "expected"),
+    [
+        ({"sma_short_period": 300}, 300),
+        ({"sma_mid_period": 400}, 400),
+        ({"macd_fast": 280}, 289),
+    ],
+)
+def test_required_rows_covers_every_configurable_period(
+    overrides: dict[str, int], expected: int
+) -> None:
+    assert _required_rows(_default_params(**overrides)) == expected
+
+
+@pytest.mark.parametrize(
+    "overrides", [{"sma_short_period": 300}, {"sma_mid_period": 400}, {"macd_fast": 280}]
+)
+def test_oversized_periods_report_the_real_row_requirement(
+    ohlcv: list[list[float]], overrides: dict[str, int]
+) -> None:
+    params = _default_params(**overrides)
+    df = ohlcv_to_dataframe(ohlcv)
+    with pytest.raises(InsufficientDataError) as excinfo:
+        calculate_indicators(df, params)
+    assert excinfo.value.need == _required_rows(params)
+    assert excinfo.value.have == len(df)
+
+
+def test_nan_indicator_reports_which_indicator_was_unstable(ohlcv: list[list[float]]) -> None:
+    df = ohlcv_to_dataframe(ohlcv)
+    df.loc[df.index[-1], "close"] = float("nan")
+    with pytest.raises(IndicatorUnstableError) as excinfo:
+        calculate_indicators(df, _default_params())
+    assert excinfo.value.indicator
+    assert "retry with a larger limit" in str(excinfo.value)
