@@ -8,8 +8,8 @@ A small FastAPI service that exposes [TA-Lib](https://ta-lib.org/) technical ind
 | -------------------------- | --------------------------------------------------- |
 | `GET /indicators`          | Compute indicators for `exchange`, `symbol`, etc.   |
 | `GET /healthz`             | Liveness probe.                                     |
-| `GET /readyz`              | Readiness probe.                                    |
-| `GET /metrics`             | Prometheus metrics.                                 |
+| `GET /readyz`              | Readiness probe. The service is stateless, so this mirrors `/healthz`. |
+| `GET /metrics`             | Prometheus metrics (disable with `METRICS_ENABLED=false`). |
 | `GET /docs`                | Interactive OpenAPI (Swagger UI).                   |
 
 ### `GET /indicators`
@@ -69,11 +69,22 @@ All settings come from environment variables (see [.env.example](.env.example)).
 | `LOG_JSON`           | `true`       | `false` for human-readable logs.                            |
 | `CORS_ALLOW_ORIGINS` | (empty)      | Comma-separated; do not use `*` in production.              |
 | `SENTRY_DSN`         | (empty)      | Enables Sentry when set.                                    |
+| `METRICS_ENABLED`    | `true`       | Set `false` to stop serving `/metrics` publicly.            |
 | `RATE_LIMIT`         | `60/minute`  | Per-IP, applies to `/indicators`.                           |
+| `RATE_LIMIT_STORAGE_URI` | `memory://` | Per-process by default; use `redis://…` across workers.  |
+| `FORWARDED_ALLOW_IPS`| `127.0.0.1`  | Proxies whose `X-Forwarded-For` is trusted for client IPs.  |
 | `CACHE_TTL_SECONDS`  | `30`         | Response cache for `(exchange, symbol, interval, limit)`.   |
 | `CCXT_TIMEOUT_MS`    | `10000`      | Per-request timeout to upstream exchange.                   |
 | `CCXT_MAX_RETRIES`   | `3`          | Transient-error retries (exponential backoff).              |
 | Indicator periods    | TA-Lib stds  | See `.env.example` for the full list.                       |
+
+### Rate limiting behind a proxy
+
+`RATE_LIMIT` is keyed on the client IP. With the default `memory://` storage each worker
+keeps its own counter, so the effective limit is `RATE_LIMIT × WORKERS`; point
+`RATE_LIMIT_STORAGE_URI` at Redis to share one budget. Behind a reverse proxy, set
+`FORWARDED_ALLOW_IPS` to the proxy address so real client IPs are used instead of the
+proxy's — otherwise every caller shares a single bucket.
 
 ## License
 
