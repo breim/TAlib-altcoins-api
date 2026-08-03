@@ -28,7 +28,7 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH" \
     LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md LICENSE ./
 COPY src ./src
 RUN pip install --upgrade pip \
     && pip install .
