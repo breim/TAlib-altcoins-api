@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 from typing import Annotated
 
 import anyio
@@ -9,7 +10,6 @@ from cachetools import TTLCache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from slowapi import Limiter
-from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from talib_altcoins_api.core.config import Settings, get_settings
@@ -25,6 +25,7 @@ from talib_altcoins_api.schemas.indicators import (
     Interval,
 )
 from talib_altcoins_api.services.indicators import (
+    IndicatorUnstableError,
     InsufficientDataError,
     calculate_indicators,
     ohlcv_to_dataframe,
@@ -33,18 +34,31 @@ from talib_altcoins_api.services.indicators import (
 logger = structlog.get_logger(__name__)
 
 _SYMBOL_RE = re.compile(r"^[A-Z0-9]{2,10}/[A-Z0-9]{2,10}$")
-_CACHE: TTLCache[tuple[str, str, str, int], IndicatorResponse] = TTLCache(maxsize=512, ttl=30)
+
+CacheKey = tuple[str, str, str, int]
+
+
+@lru_cache(maxsize=1)
+def _response_cache() -> TTLCache[CacheKey, IndicatorResponse]:
+    return TTLCache(maxsize=512, ttl=get_settings().cache_ttl_seconds)
+
+
+def reset_response_cache() -> None:
+    _response_cache.cache_clear()
 
 
 def _settings_rate_limit_key() -> str:
     return get_settings().rate_limit
 
 
-limiter = Limiter(key_func=get_remote_address, default_limits=[])
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[],
+    storage_uri=get_settings().rate_limit_storage_uri,
+)
 
 
 def rate_limit_handler(request: Request, exc: Exception) -> JSONResponse:
-    assert isinstance(exc, RateLimitExceeded)
     return JSONResponse(status_code=429, content={"detail": "rate limit exceeded"})
 
 
@@ -89,14 +103,11 @@ async def get_indicators(
     if not _SYMBOL_RE.match(symbol):
         raise HTTPException(status_code=422, detail="symbol must look like 'BTC/USDT'")
 
+    cache = _response_cache()
     cache_key = (exchange, symbol, interval, limit)
-    cached = _CACHE.get(cache_key)
+    cached = cache.get(cache_key)
     if cached is not None:
         return cached
-
-    if _CACHE.ttl != settings.cache_ttl_seconds:
-        _CACHE.clear()
-        _CACHE.__init__(maxsize=512, ttl=settings.cache_ttl_seconds)  # type: ignore[misc]
 
     try:
         rows = await anyio.to_thread.run_sync(fetch_ohlcv, exchange, symbol, interval, limit)
@@ -110,8 +121,8 @@ async def get_indicators(
 
     try:
         result = calculate_indicators(df, params)
-    except InsufficientDataError as exc:
+    except (InsufficientDataError, IndicatorUnstableError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-    _CACHE[cache_key] = result
+    cache[cache_key] = result
     return result

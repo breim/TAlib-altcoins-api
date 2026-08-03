@@ -21,17 +21,17 @@ def _env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def _reset_caches() -> Iterator[None]:
-    from talib_altcoins_api.api import indicators as api_indicators
+    from talib_altcoins_api.api.indicators import reset_response_cache
     from talib_altcoins_api.core.config import reset_settings_cache
     from talib_altcoins_api.core.exchanges import reset_client_cache
 
     reset_settings_cache()
     reset_client_cache()
-    api_indicators._CACHE.clear()
+    reset_response_cache()
     yield
     reset_settings_cache()
     reset_client_cache()
-    api_indicators._CACHE.clear()
+    reset_response_cache()
 
 
 @pytest.fixture

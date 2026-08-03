@@ -43,7 +43,8 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(indicators_router)
 
-    Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
+    if settings.metrics_enabled:
+        Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
     return app
 

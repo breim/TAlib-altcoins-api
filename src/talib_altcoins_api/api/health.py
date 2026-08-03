@@ -11,10 +11,6 @@ async def root() -> dict[str, str]:
 
 
 @router.get("/healthz")
+@router.get("/readyz")
 async def healthz() -> dict[str, str]:
     return {"status": "ok"}
-
-
-@router.get("/readyz")
-async def readyz() -> dict[str, str]:
-    return {"status": "ready"}
