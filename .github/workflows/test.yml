@@ -75,6 +75,38 @@ jobs:
       - run: uv tool run pip-audit --strict -r <(uv export --no-hashes --format requirements-txt)
         shell: bash
 
+  build:
+    name: Build distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - run: uv python install 3.12
+
+      - name: Build wheel and sdist
+        run: uv build
+
+      - name: Validate package metadata
+        run: uvx twine check --strict dist/*
+
+      - name: Verify the wheel installs and exposes its entrypoint
+        run: |
+          set -euo pipefail
+          uv venv /tmp/verify
+          uv pip install --python /tmp/verify --no-deps dist/*.whl
+          test -x /tmp/verify/bin/talib-altcoins-api
+
+      - name: Upload distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
   docker:
     name: Docker build
     runs-on: ubuntu-latest
