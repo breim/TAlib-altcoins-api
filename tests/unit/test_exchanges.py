@@ -61,7 +61,8 @@ def test_unknown_exchange_name_raises() -> None:
 def test_known_exchange_returns_client_and_lock() -> None:
     cached = get_exchange_client("binance")
     assert hasattr(cached.client, "fetch_ohlcv")
-    assert isinstance(cached.lock, threading.Lock)
+    assert cached.lock.acquire(blocking=False)
+    cached.lock.release()
 
 
 def test_client_is_cached_per_exchange() -> None:
