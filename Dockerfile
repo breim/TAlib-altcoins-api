@@ -8,6 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
+        file \
         wget \
         ca-certificates \
     && rm -rf /var/lib/apt/lists/*
@@ -18,7 +19,7 @@ COPY ta-lib-0.4.0-src.tar.gz ./
 RUN tar -xzf ta-lib-0.4.0-src.tar.gz \
     && cd ta-lib \
     && ./configure --prefix=/usr/local \
-    && make -j"$(nproc)" \
+    && make \
     && make install \
     && cd .. \
     && rm -rf ta-lib ta-lib-0.4.0-src.tar.gz

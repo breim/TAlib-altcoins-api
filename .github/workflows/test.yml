@@ -30,7 +30,7 @@ jobs:
           tar -xzf ta-lib-0.4.0-src.tar.gz
           cd ta-lib
           ./configure --prefix=/usr
-          make -j"$(nproc)"
+          make
           sudo make install
           sudo ldconfig
 
@@ -72,7 +72,9 @@ jobs:
       - uses: astral-sh/setup-uv@v3
       - run: uv python install 3.12
       - run: uv tool install pip-audit
-      - run: uv tool run pip-audit --strict -r <(uv export --no-hashes --format requirements-txt)
+      - run: |
+          uv tool run pip-audit --strict \
+            -r <(uv export --no-hashes --no-emit-project --format requirements-txt)
         shell: bash
 
   build:
