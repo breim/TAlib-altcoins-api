@@ -14,6 +14,8 @@ def main() -> None:
         reload=settings.reload,
         workers=1 if settings.reload else settings.workers,
         log_config=None,
+        proxy_headers=True,
+        forwarded_allow_ips=settings.forwarded_allow_ips,
     )
 
 

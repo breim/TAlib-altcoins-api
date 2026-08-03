@@ -30,7 +30,12 @@ class Settings(BaseSettings):
 
     sentry_dsn: str | None = None
 
+    metrics_enabled: bool = True
+
     rate_limit: str = "60/minute"
+    rate_limit_storage_uri: str = "memory://"
+
+    forwarded_allow_ips: str = "127.0.0.1"
 
     cache_ttl_seconds: int = Field(default=30, ge=0, le=3600)
 
