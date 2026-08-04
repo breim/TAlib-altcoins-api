@@ -24,14 +24,19 @@ RUN tar -xzf ta-lib-0.4.0-src.tar.gz \
     && cd .. \
     && rm -rf ta-lib ta-lib-0.4.0-src.tar.gz
 
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH" \
+COPY --from=ghcr.io/astral-sh/uv:0.11.16 /uv /usr/local/bin/uv
+
+# Installing from the lockfile rather than `pip install .` keeps the image
+# identical to the audited environment. pip cannot see [tool.uv]
+# override-dependencies, so it would resolve ccxt's pinned aiohttp and
+# cryptography and ship the versions those overrides exist to avoid.
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
+    PATH="/opt/venv/bin:$PATH" \
     LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 
-COPY pyproject.toml README.md LICENSE ./
+COPY pyproject.toml uv.lock README.md LICENSE ./
 COPY src ./src
-RUN pip install --upgrade pip \
-    && pip install .
+RUN uv sync --frozen --no-dev --no-editable
 
 
 FROM python:3.12-slim-bookworm AS runtime

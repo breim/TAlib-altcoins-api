@@ -70,19 +70,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
       - run: uv python install 3.12
-      - run: uv tool install pip-audit
-      # ccxt 4.5.70 hard-pins cryptography==49.0.0 and aiohttp==3.14.1, so neither
-      # can be upgraded while ccxt is a dependency. Drop these once ccxt relaxes
-      # its pins; every other advisory still fails the build.
-      - run: |
-          uv tool run pip-audit --strict \
-            --ignore-vuln CVE-2026-59881 \
-            --ignore-vuln CVE-2026-69243 \
-            --ignore-vuln CVE-2026-69244 \
-            --ignore-vuln CVE-2026-69247 \
-            -r <(uv export --no-hashes --no-emit-project --format requirements-txt)
-        shell: bash
+      - run: uv sync --all-extras
+
+      # Audits the resolved environment rather than a re-resolved requirements
+      # file, so the [tool.uv] overrides that lift ccxt's aiohttp and
+      # cryptography pins are reflected. --skip-editable drops the local project,
+      # which has no PyPI release; vulnerabilities still fail the job.
+      - run: uv run pip-audit --skip-editable
 
   build:
     name: Build distribution
@@ -127,6 +124,18 @@ jobs:
         with:
           context: .
           push: false
+          load: true
           tags: talib-altcoins-api:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # The image is built from uv.lock, so it must carry the overridden
+      # versions rather than the ones ccxt pins.
+      - name: Verify the image ships the audited dependency versions
+        run: |
+          docker run --rm talib-altcoins-api:ci python -c "
+          import aiohttp, cryptography, ccxt, talib_altcoins_api
+          print('aiohttp', aiohttp.__version__, '| cryptography', cryptography.__version__, '| ccxt', ccxt.__version__)
+          assert aiohttp.__version__ == '3.14.3', aiohttp.__version__
+          assert cryptography.__version__ == '50.0.0', cryptography.__version__
+          "
