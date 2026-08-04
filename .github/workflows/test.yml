@@ -139,3 +139,50 @@ jobs:
           assert aiohttp.__version__ == '3.14.3', aiohttp.__version__
           assert cryptography.__version__ == '50.0.0', cryptography.__version__
           "
+
+      - name: Smoke test the running container
+        run: |
+          set -euo pipefail
+          docker run -d --name api -p 5001:5001 talib-altcoins-api:ci
+
+          for _ in $(seq 1 30); do
+            curl -sf http://127.0.0.1:5001/healthz >/dev/null && break
+            sleep 2
+          done
+
+          check() {
+            local path="$1" expected="$2"
+            local got
+            got=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:5001${path}")
+            if [ "$got" != "$expected" ]; then
+              echo "FAIL ${path}: expected ${expected}, got ${got}"
+              docker logs api
+              docker rm -f api >/dev/null
+              exit 1
+            fi
+            echo "ok   ${path} -> ${got}"
+          }
+
+          check /healthz 200
+          check /readyz 200
+          check /docs 200
+          check /metrics 200
+          check "/indicators?exchange=not_an_exchange&symbol=BTC/USDT" 404
+          check "/indicators?exchange=binance&symbol=BTCUSDT" 422
+          check "/indicators?exchange=binance&symbol=BTC/USDT&interval=9d" 422
+
+          curl -sf http://127.0.0.1:5001/healthz | grep -q '"status":"ok"'
+          curl -sf http://127.0.0.1:5001/metrics | grep -q '^# HELP'
+
+          # Upstream exchanges are reachable from most runners but can be
+          # geo-blocked, so this is reported rather than enforced.
+          live=$(curl -s -o /tmp/live.json -w '%{http_code}' \
+            "http://127.0.0.1:5001/indicators?exchange=binance&symbol=BTC/USDT&interval=1h&limit=200")
+          echo "live upstream fetch -> ${live}"
+          if [ "$live" = "200" ]; then
+            python3 -c "import json;d=json.load(open('/tmp/live.json'));assert len(d)==17;print('  17 indicators, adx=%.3f rsi=%.3f'%(d['adx'],d['rsi']))"
+          else
+            echo "  skipped end-to-end assertion (upstream returned ${live})"
+          fi
+
+          docker rm -f api >/dev/null

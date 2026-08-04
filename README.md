@@ -38,7 +38,7 @@ Pre-built images are published to `ghcr.io/<owner>/talib-altcoins-api:<version>`
 
 ## Local development
 
-Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). On macOS, `brew install ta-lib` first; on Debian/Ubuntu, build the C library from the vendored tarball as in the Dockerfile.
+Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/). TA-Lib publishes prebuilt wheels for macOS, Linux and Windows, so no system library is needed on those platforms. Build the C library from the vendored tarball, as the Dockerfile does, only if no wheel matches your platform.
 
 ```bash
 uv sync --all-extras

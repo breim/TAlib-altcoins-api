@@ -2,16 +2,21 @@
 
 ## Local setup
 
+Install [uv](https://docs.astral.sh/uv/), then:
+
 ```bash
-# install ta-lib C library (macOS)
-brew install ta-lib
-
-# or on Debian/Ubuntu, build from the vendored tarball as in the Dockerfile
-
-# install uv (https://docs.astral.sh/uv/) then:
 uv sync --all-extras
 uv run pre-commit install
 ```
+
+TA-Lib installs from a prebuilt wheel on macOS, Linux and Windows. Only if no wheel
+matches your platform do you need the C library, built from the vendored tarball as
+the Dockerfile does.
+
+`pyproject.toml` carries a `[tool.uv] override-dependencies` block that lifts ccxt's
+exact pins on `aiohttp` and `cryptography` to versions without known advisories. It
+applies to `uv sync` and `uv.lock`, so install with uv rather than pip; the Docker
+image is built from the lockfile for the same reason.
 
 ## Running the API
 
@@ -34,7 +39,9 @@ uv run mypy src
 uv run pytest --cov
 ```
 
-CI runs all of the above plus a multi-arch Docker build.
+CI runs all of the above on Python 3.11 and 3.12, plus a dependency audit, a wheel and
+sdist build, and a Docker build that boots the image and smoke tests its endpoints. The
+multi-arch build runs only on release tags.
 
 ## Branches
 
