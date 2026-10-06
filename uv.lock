@@ -270,7 +270,7 @@ wheels = [
 
 [[package]]
 name = "ccxt"
-version = "4.5.70"
+version = "4.5.85"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohappyeyeballs" },
@@ -290,7 +290,6 @@ dependencies = [
     { name = "propcache" },
     { name = "pycparser" },
     { name = "requests" },
-    { name = "setuptools" },
     { name = "typing-extensions" },
     { name = "urllib3" },
     { name = "uvloop", marker = "implementation_name == 'cpython' and sys_platform != 'win32'" },
@@ -298,9 +297,9 @@ dependencies = [
     { name = "yarl" },
     { name = "zlib-ng" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f9/5e/9feb14d8a31762e142e88aeef02cc78c68869750054eb3f57ed3b2ea6646/ccxt-4.5.70.tar.gz", hash = "sha256:ddc3ddf4ae65d27962976e036b0b9e7803947e453699d39fcbcb696b8a348776", size = 6011490, upload-time = "2026-07-29T13:24:53.09Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/84/57/f68d0cb8ee804b805113f3d819a1d69179dd5ddf361ac74418fc5afb2a4d/ccxt-4.5.85.tar.gz", hash = "sha256:e2e57064675779b16d174c4bb87856d4c84e237075c6240e4c0d99db931bd02b", size = 6322871, upload-time = "2026-10-01T06:38:12.396Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4f/f6/355bf606c05e537d43fec8ea9c9a53d39a8afdaba644d04f05e3f0aa9bb9/ccxt-4.5.70-py3-none-any.whl", hash = "sha256:7e6989973979b630832ff99b8c831cc9429461cfcaebbf6569b483ef5627fc1f", size = 6455764, upload-time = "2026-07-29T13:24:50.668Z" },
+    { url = "https://files.pythonhosted.org/packages/43/c4/8264379c5cc6b47cb45b5a984a32f82fdf2689ee62af8255bc238f612701/ccxt-4.5.85-py3-none-any.whl", hash = "sha256:da6b2cce40530d471bc8ecf716a3e7d709f597fca8a4a84e40e7422b31f164c0", size = 6704190, upload-time = "2026-10-01T06:38:09.141Z" },
 ]
 
 [[package]]
@@ -2239,15 +2238,6 @@ fastapi = [
 ]
 
 [[package]]
-name = "setuptools"
-version = "83.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/34/26/f5d29e25ffdb535afef2d35cdb55b325298f96debd670da4c325e08d70f4/setuptools-83.0.0.tar.gz", hash = "sha256:025bccbbf0fa05b6192bc64ae1e7b16e001fd6d6d4d5de03c97b1c1ade523bef", size = 1154254, upload-time = "2026-07-04T15:31:22.699Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/40/e1e72872c6354b306daef1703549e8e83b4d43cfea356311bf722a043752/setuptools-83.0.0-py3-none-any.whl", hash = "sha256:29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3", size = 1008090, upload-time = "2026-07-04T15:31:20.885Z" },
-]
-
-[[package]]
 name = "six"
 version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2546,11 +2536,11 @@ wheels = [
 
 [[package]]
 name = "urllib3"
-version = "2.7.0"
+version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/53/0c/06f8b233b8fd13b9e5ee11424ef85419ba0d8ba0b3138bf360be2ff56953/urllib3-2.7.0.tar.gz", hash = "sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c", size = 433602, upload-time = "2026-05-07T16:13:18.596Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e3/05/b17359e1cefb4f909b5e40b1b90a496d987258916dbbf88e842c729f510e/urllib3-2.8.0.tar.gz", hash = "sha256:63bf2ead4c879426ebf22ef2a781eeb4aa3b4ae798a0435506f8687fd5bb9b63", size = 458972, upload-time = "2026-09-15T19:29:36.253Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7f/3e/5db95bcf282c52709639744ca2a8b149baccf648e39c8cc87553df9eae0c/urllib3-2.7.0-py3-none-any.whl", hash = "sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897", size = 131087, upload-time = "2026-05-07T16:13:17.151Z" },
+    { url = "https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl", hash = "sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3", size = 135717, upload-time = "2026-09-15T19:29:34.577Z" },
 ]
 
 [[package]]
